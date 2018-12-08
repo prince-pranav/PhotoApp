@@ -1,5 +1,6 @@
 package com.pntechworld.photoapp
 
+import android.content.Intent
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,7 +10,7 @@ import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.pntechworld.photoapp.models.Photo
 
-class PhotoAdapter( photos: List<Photo>?) :
+class PhotoAdapter(photos: List<Photo>?) :
     RecyclerView.Adapter<PhotoAdapter.ViewHolder>() {
 
     private var mPhotos: List<Photo>? = photos
@@ -34,7 +35,10 @@ class PhotoAdapter( photos: List<Photo>?) :
             Glide.with(holder.photo.context).load(photo.previewURL).into(holder.photo)
 
         holder.photo.setOnClickListener {
-            Log.d("Image", position.toString())
+            val intent = Intent(holder.photo.context, DetailActivity::class.java).apply {
+                putExtra("Intent", photo)
+            }
+            holder.photo.context.startActivity(intent)
         }
     }
 
