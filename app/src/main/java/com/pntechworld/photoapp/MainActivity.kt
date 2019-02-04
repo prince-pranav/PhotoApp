@@ -5,30 +5,61 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
-import com.pntechworld.photoapp.models.Photo
+import com.pntechworld.photoapp.api.ApiServices
 import com.pntechworld.photoapp.models.PhotoList
 import kotlinx.android.synthetic.main.activity_main.*
+import main.java.com.pntechworld.photoapp.ThisApp
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import retrofit2.Retrofit
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var retrofit: Retrofit
 
     lateinit var recyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        (application as ThisApp).getDiApiComponent().inject(this)
+
         setSupportActionBar(toolbar)
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        getPhoto()
+//        getPhoto()
+        getPhotoByDi()
+    }
+
+    private fun getPhotoByDi() {
+
+        val apiClient = retrofit.create(ApiServices::class.java)
+        val call = apiClient.getPhotos()
+
+        call.enqueue(object : Callback<PhotoList> {
+
+            override fun onResponse(call: Call<PhotoList>, response: Response<PhotoList>) {
+                var photos = response.body()!!.hits
+
+                if (photos!!.isNotEmpty())
+                    recyclerView.adapter = PhotoAdapter(photos)
+                else
+                    Toast.makeText(recyclerView.context, "Something went wrong", Toast.LENGTH_LONG)
+            }
+
+            override fun onFailure(call: Call<PhotoList>, t: Throwable) {
+                Toast.makeText(recyclerView.context, "Something went wrong", Toast.LENGTH_LONG)
+            }
+        }
+        )
     }
 
     fun getPhoto() {
@@ -52,7 +83,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
